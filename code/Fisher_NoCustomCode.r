@@ -56,22 +56,22 @@ ModelMPP <- nimbleCode({
         d2[k,1:J] <- (X[k,1]-traps[1:J,1])^2 + (X[k,2]-traps[1:J,2])^2
 
 		## Now the rate for the Poisson process:
-		## Don't put lambda here for efficiency of updates.
-        pkj[k,1:J] <- exp(-d2[k,1:J]*tau2)
+        Hkj[k,1:J] <- exp(-d2[k,1:J]*tau2)*Time*lambda
         ## Hazard rate for animal across all traps.
-		Hk[k] <- sum(pkj[k,1:J])*Time*lambda*z[k]
+		Hk[k] <- sum(Hkj[k,1:J])*z[k]
 		zeros[k] ~ dpois(Hk[k])
    }
 
-	H.. <- sum(Hk[1:M])
-	pID[1:M] <- Hk[1:M]/H..	# Puts a prior on ID of z==1.
+	H. <- sum(Hk[1:M])
+	pID[1:M] <- Hk[1:M]/H.	# Puts a prior on ID of z==1.
 
     # Trap history model.
     # and unobserved animal ID.
     for(i in 1:n_obs) {
         # Trap probability given ID:
-		pobs[i, 1:J] <- pkj[ID[i], 1:J]/Hk[ID[i]]
-        omega[i] ~ dcat(pobs[i,1:J])
+		pobs[i, 1:J] <- Hkj[ID[i], 1:J]/Hk[ID[i]]
+		## Minimum speed up to make this a ones trick instead as this is just indexing the probability
+        omega[i] ~ dcat(pobs[i,1:J])	
 		# ID probability:
 		ID[i] ~ dcat(pID[1:M])
     }
@@ -150,7 +150,7 @@ Cmcmc <- compileNimble(Rmcmc, project = Rmodel)
 Cmcmc$run(niter = 10000)
 mvSamples <- Cmcmc$mvSamples
 samples <- as.matrix(mvSamples)
-out <- mcmc(samples[-(1:5000),])
+out.mpp <- mcmc(samples[-(1:5000),])
 
 # outmpp <- runMCMC(Cmcmc, niter = 100000, nburnin = 40000, nchains = 3, 
 	# thin = 1, inits = list(inits.mpp(), inits.mpp(), inits.mpp()), samplesAsCodaMCMC = TRUE)

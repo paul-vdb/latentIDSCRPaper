@@ -1,19 +1,4 @@
-dX <- nimbleFunction(
-    run = function(x = double(1), log = integer(0, default = 0)) {
-        returnType(double(0))
-        return(0)
-    }
-)
-
-rX <- nimbleFunction(
-    run = function(n = integer(0)) {
-        print('Error: rX() function not implemented')
-        returnType(double(1))
-        return(c(0, 0))
-    }
-)
-
-# Stupid holder function for sampling ID.
+# Holder function for sampling ID.
 # I've added pID here so that I can put the z dependency here as a prior on the
 # ID and make the categorical sampler a tiny bit quicker. Can also
 # include other hard prior info here making it helpful.
@@ -150,9 +135,7 @@ rPoisSC <- nimbleFunction(
   })
 
 registerDistributions(
-    list(dX = list(BUGSdist = 'dX()',
-                   types = c('value = double(1)')),
-		 dID = list(BUGSdist = 'dID(pID)',
+    list(dID = list(BUGSdist = 'dID(pID)',
                    types = c('value = integer(0)', 'pID = double(1)')),
 		 dTrap = list(BUGSdist = 'dTrap(p, ID)',
                    types = c('value = integer(0)', 'p = double(2)', 'ID = integer(0)')),				   
@@ -334,6 +317,8 @@ sampler_myBinary <- nimbleFunction(
 # I can do a very quick check on pID[k] = 0
 # via calculate(target).
 # This generalizes really nicely.
+# I've added a very quick ones trick for pID to make this faster. 
+# Change the set up to only do prior checks, and skip other conditionals.
 #######################################################
 sampler_myCategorical <- nimbleFunction(
     name = 'sampler_myCategorical',
@@ -347,6 +332,7 @@ sampler_myCategorical <- nimbleFunction(
         M <- control$M
         probs <- numeric(M)
         logProbs <- numeric(M)
+		priorOnly <- extractControlElement(control, 'priorOnly', 0)	## Set to 1 if you don't want to calc posterior.
     },
     run = function() {
         currentValue <- model[[target]]
@@ -355,17 +341,26 @@ sampler_myCategorical <- nimbleFunction(
             if(k != currentValue) {
                 model[[target]] <<- k
                 logProbPrior <- model$calculate(target)
-                if(logProbPrior == -Inf) {
-                    logProbs[k] <<- -Inf
-                } else {
-                    if(is.nan(logProbPrior)) {
+				if(priorOnly == 1){	## Use only the prior.
+					if(is.nan(logProbPrior)) {
                         logProbs[k] <<- -Inf
-                    } else {
-                        logProbs[k] <<- logProbPrior + model$calculate(calcNodesNoSelf)
-                        if(is.nan(logProbs[k])) logProbs[k] <<- -Inf
-                    }
-                }
-            }
+                    }else {
+						logProbs[k] <<- logProbPrior
+					}
+				}else {	## Calculate the full posterior.
+					if(logProbPrior == -Inf) {
+						logProbs[k] <<- -Inf
+					} else {
+						if(is.nan(logProbPrior)) {
+							logProbs[k] <<- -Inf
+						} else {
+							logProbs[k] <<- logProbPrior + model$calculate(calcNodesNoSelf)
+							if(is.nan(logProbs[k])) logProbs[k] <<- -Inf
+						}
+					}
+				}
+				
+			}
         }
         logProbs <<- logProbs - max(logProbs)
         probs <<- exp(logProbs)

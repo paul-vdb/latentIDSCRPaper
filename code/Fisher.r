@@ -252,6 +252,12 @@ out2 <- runMCMC(Cmcmc, niter = 100000, nburnin = 40000, nchains = 3,
 # plot(out2[, c('lambda', 'N')])
 # summary(out2[, c('lambda, 'sigma', 'N', 'D')])
 
+Cmcmc$run(niter = 10000)
+mvSamples <- Cmcmc$mvSamples
+samples <- as.matrix(mvSamples)
+out <- mcmc(samples[-(1:5000),])
+
+
 ####################################
 # Model 3: Sex as a covariate
 ####################################
@@ -557,3 +563,5 @@ out4 <- runMCMC(Cmcmc, niter = 100000, nburnin = 40000, nchains = 3,
 
 plot(out4[, c("N", "D")])
 plot(out4[, c("sigma", "lambda", "psex")])
+
+

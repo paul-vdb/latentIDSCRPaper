@@ -237,10 +237,10 @@ conf$addSampler(target = 'sigma',
 
 ## Optimized z sampler, it is a small change from standard as it does a check if ID is matched.
 conf$removeSamplers('z')
-conf$addSampler('z', type = 'myBinary', scalarComponents = TRUE)
+conf$addSampler('z', type = 'myBinary', targetByNode = TRUE)
 ## van Dam-Bates categorical sampler, although Nimble has updated their categorical function so they are very similar.
 conf$removeSamplers('ID')
-conf$addSampler('ID', type = 'myCategorical', scalarComponents = TRUE, control = list(M = M))
+conf$addSampler('ID', type = 'myCategorical', targetByNode = TRUE, control = list(M = M))
 Rmcmc <- buildMCMC(conf)
 Cmodel <- compileNimble(Rmodel)
 Cmcmc <- compileNimble(Rmcmc, project = Rmodel)
@@ -374,10 +374,10 @@ conf$addSampler(target = 'sigma',
 
 # Optimized z sampler
 conf$removeSamplers('z')
-conf$addSampler('z', type = 'myBinary', scalarComponents = TRUE)
+conf$addSampler('z', type = 'myBinary', targetByNode = TRUE)
 
 conf$removeSamplers('ID')
-conf$addSampler('ID', type = 'myCategorical', scalarComponents = TRUE, control = list(M = M))
+conf$addSampler('ID', type = 'myCategorical', targetByNode = TRUE, control = list(M = M))
 
 Rmcmc <- buildMCMC(conf)
 Cmodel <- compileNimble(Rmodel)
@@ -545,14 +545,14 @@ for(i in 1:M){
 conf$removeSamplers('sigma')
 # sigma slice sampling.
 conf$addSampler(target = 'sigma', 
-		type = 'slice', silent = TRUE, scalarComponents = TRUE, control = list(adaptive = FALSE, scaleWidth = 0.5))		
+		type = 'slice', silent = TRUE, targetByNode = TRUE, control = list(adaptive = FALSE, scaleWidth = 0.5))		
 
 # Optimized z sampler
 conf$removeSamplers('z')
-conf$addSampler('z', type = 'myBinary', scalarComponents = TRUE)
+conf$addSampler('z', type = 'myBinary', targetByNode = TRUE)
 
 conf$removeSamplers('ID')
-conf$addSampler('ID', type = 'myCategorical', scalarComponents = TRUE, control = list(M = M))
+conf$addSampler('ID', type = 'myCategorical', targetByNode = TRUE, control = list(M = M))
 Rmcmc <- buildMCMC(conf)
 Cmodel <- compileNimble(Rmodel)
 Cmcmc <- compileNimble(Rmcmc, project = Rmodel)

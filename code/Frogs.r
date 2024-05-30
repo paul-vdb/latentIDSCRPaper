@@ -168,12 +168,12 @@ conf$addSampler(target = 'g0',
 		type = 'slice', silent = TRUE, control = list(adaptive = FALSE, scaleWidth = 0.5))		
 
 conf$removeSamplers('z')
-conf$addSampler('z', type = 'myBinary', scalarComponents = TRUE, 
+conf$addSampler('z', type = 'myBinary', targetByNode = TRUE, 
 	control = list('Noccasion' = 2, 'IDoccasion' = occ))
 
 conf$removeSamplers('ID')
 # Sampler from Chandler and Royle 2013
-conf$addSampler('ID', type = 'myCategorical', scalarComponents = TRUE, control = list(M = M))
+conf$addSampler('ID', type = 'myCategorical', targetByNode = TRUE, control = list(M = M))
 
 Rmcmc <- buildMCMC(conf)
 Cmodel <- compileNimble(Rmodel)
